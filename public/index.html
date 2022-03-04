@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Downloader</title>
+	<style>
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+			text-transform: capitalize;
+		}
+
+		.container{
+			width: 80%;
+			margin: 0 auto;
+		}
+
+		.d-flex{
+			display: flex;
+			justify-content: space-between;
+		}
+
+		.header{
+			width: 100%;
+			height: 50px;
+			color: #fff;
+			background: #F3350A;
+			text-align: center;
+			line-height: 50px;
+		}
+
+		.form{
+			padding: 160px 50px;
+			background: linear-gradient(to right, #F8e341, #83deae);
+			width: 100%;
+		}
+
+		.form .form-element{
+			width: 400px;
+			margin: 10px auto;
+		}
+
+		.form .form-element label{
+			display: block;
+			margin-bottom: 5px;
+		}
+
+		.form .form-element input{
+			padding: 10px;
+			outline: none;
+			border: 1px solid #999;
+			font-size: 15px;
+			width: 100%;
+		}
+
+		.form .form-element button{
+			width: 45%;
+			height: 40px;
+			background: #111;
+			color: #f5f5f5;
+			outline: none;
+			cursor: pointer;
+			font-size: 15px;
+			border: none;
+		}
+
+		.video-data{
+			width: 400px;
+			margin: 60px auto;
+			display: none;
+		}
+
+		.video-data .data .thumbnail img{
+			width: 100%;
+		}
+
+		.video-data .data .info{
+			margin-top: 10px;
+		}
+
+		.video-data .data .info h2{
+			font-size: 16px;
+			margin-bottom: 10px;
+			color: #222;
+		}
+
+		.video-data .data .info p{
+			font-size: 13px;
+			color: #555;
+		}
+
+		.video-data .controls{
+			display: flex;
+			justify-content: space-between;
+			margin-top: 20px;
+		}
+
+		.video-data .controls select,
+		.video-data .controls button{
+			width: 48%;
+			height: 40px;
+		}
+
+		.video-data .controls button{
+			border: 1px solid #888;
+			color: #111;
+			background: transparent;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div class="header">
+			youtube downlloader
+		</div>
+		<div class="form">
+			<div class="form-element">
+				<label for="videoUrl">enter youtube video link</label>
+				<input type="text" id="videoURL">
+			</div>
+			<div class="form-element d-flex">
+				<button id="get-video-info-btn" onclick="hidedm()">Download for video</button>
+				<button id="get-video-info-btn-music" onclick="hidedv()">Download for music</button>
+			</div>
+		</div>
+		<div class="video-data">
+			<div class="data">
+				<div class="thumbnail">
+					<img src="" alt="">
+				</div>
+				<div class="info">
+					<h2>Lorem ipsum dolor sit, amet.</h2>
+					<p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Ullam doloribus mollitia illum alias perferendis voluptatem incidunt placeat, ex sed sit inventore saepe odit tempora ipsa, ea porro non recusandae deserunt.</p>
+				</div>
+			</div>
+			<div class="controls">
+				<input type="hidden" id="video-url">
+				<select id="download-options"></select>
+				<button id="download-btn">download</button>
+				<button id="downloadMusic-btn">download</button>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		const host = "http://localhost:5000/";
+		document.querySelector("#get-video-info-btn").addEventListener('click', function() {
+			let videoURL = document.querySelector('#videoURL').value.trim();
+			if (videoURL.length == 0 ) {
+				alert('isi nu bener atuh URL na di kolom URL nu disadiakeun ulah sok ngaco padu click click bae');
+				return;
+			}
+			fetch(host+"videoInfo?videoURL="+videoURL).then(function(response){
+				return response.json();
+			}).then(function(data){
+				console.log(data);
+				let detailsNodes = {
+					thumbnail: document.querySelector(".video-data .thumbnail img"),
+					title: document.querySelector(".video-data .info h2"),
+					description: document.querySelector('.video-data .info p'),
+					videoURL: document.querySelector('.video-data .controls #video-url'),
+					downloadOptions: document.querySelector('.video-data .controls #download-options')
+				}
+
+				let html = "";
+
+				for(let i = 0; i < data.formats.length; i++){
+					if(data.formats[i].container != "mp4"){
+						continue;
+					}
+					html += `
+						<option value="${data.formats[i].itag}">
+							${data.formats[i].container} - ${data.formats[i].qualityLabel}
+						</option>
+					`;
+					detailsNodes.thumbnail.src = data.videoDetails.thumbnails[data.videoDetails.thumbnails.length - 1].url;
+
+					detailsNodes.title.innerText = data.videoDetails.title;
+					detailsNodes.description.innerText = data.videoDetails.description;
+					detailsNodes.videoURL.value = videoURL;
+					detailsNodes.downloadOptions.innerHTML = html;
+					document.querySelector(".video-data").style.display = "block";
+					document.querySelector(".video-data").scrollIntoView({
+						behavior: "smooth"
+					});
+				}
+
+			}).catch(function(error){
+				alert("something went wrong");
+			})
+		})
+
+		document.querySelector("#get-video-info-btn-music").addEventListener('click', function() {
+			let videoURL = document.querySelector('#videoURL').value.trim();
+			if (videoURL.length == 0 ) {
+				alert('isi nu bener atuh URL na di kolom URL nu disadiakeun ulah sok ngaco padu click click bae');
+				return;
+			}
+			fetch(host+"videoInfo?videoURL="+videoURL).then(function(response){
+				return response.json();
+			}).then(function(data){
+				console.log(data);
+				let detailsNodes = {
+					thumbnail: document.querySelector(".video-data .thumbnail img"),
+					title: document.querySelector(".video-data .info h2"),
+					description: document.querySelector('.video-data .info p'),
+					videoURL: document.querySelector('.video-data .controls #video-url'),
+					downloadOptions: document.querySelector('.video-data .controls #download-options')
+				}
+
+				let html = "";
+
+				for(let i = 0; i < data.formats.length; i++){
+					if(data.formats[i].container != "mp4"){
+						continue;
+					}
+
+					if (data.formats[i].qualityLabel == "240p" || data.formats[i].qualityLabel == "480p" || data.formats[i].qualityLabel == "360p" || data.formats[i].qualityLabel == "144p" || data.formats[i].qualityLabel == "null") {
+						continue;
+					}
+
+					html += `
+						<option value="${data.formats[i].itag}">
+							MP3 (128kbps)
+						</option>
+					`;
+					detailsNodes.thumbnail.src = data.videoDetails.thumbnails[data.videoDetails.thumbnails.length - 1].url;
+
+					detailsNodes.title.innerText = data.videoDetails.title;
+					detailsNodes.description.innerText = data.videoDetails.description;
+					detailsNodes.videoURL.value = videoURL;
+					detailsNodes.downloadOptions.innerHTML = html;
+					document.querySelector(".video-data").style.display = "block";
+					document.querySelector(".video-data").scrollIntoView({
+						behavior: "smooth"
+					});
+				}
+
+			}).catch(function(error){
+				alert("something went wrong");
+			})
+		})
+
+		document.querySelector("#download-btn").addEventListener('click', ()=>{
+			let videoURL = document.querySelector('#video-url').value;
+			let itag = document.querySelector('#download-options').value;
+			
+			window.open(host + "download?videoURL="+videoURL+"&itag="+itag);
+		})
+		document.querySelector("#downloadMusic-btn").addEventListener('click', ()=>{
+			let videoURL = document.querySelector('#video-url').value;
+			let itag = document.querySelector('#download-options').value;
+			
+			window.open(host + "downloadMusic?videoURL="+videoURL+"&itag="+itag);
+		})
+
+		function hidedv() {
+			document.querySelector("#download-btn").style.display = "none";
+			document.querySelector("#downloadMusic-btn").style.display = "block";
+		}
+
+		function hidedm() {
+			document.querySelector("#downloadMusic-btn").style.display = "none";
+			document.querySelector("#download-btn").style.display = "block";
+		}
+	</script>
+</body>
+</html>
